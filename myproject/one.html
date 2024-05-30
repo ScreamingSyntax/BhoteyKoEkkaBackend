@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Line Updates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .order-line {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Live Order Line Updates</h2>
+    <div id="orderLinesContainer"></div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:3333/ws/order/kitchen/'); // Update to your WebSocket URL
+
+        ws.onopen = function() {
+            console.log('WebSocket connection established');
+        };
+
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'orderline_updates') {
+                displayOrderLines(data.message);
+            }
+        };
+
+        function displayOrderLines(orderLines) {
+            const container = document.getElementById('orderLinesContainer');
+            container.innerHTML = ''; // Clear existing content
+
+            orderLines.forEach(line => {
+                const div = document.createElement('div');
+                div.classList.add('order-line');
+                div.innerHTML = `
+                    <div><strong>Item:</strong> ${line.item_name}</div>
+                    <div><strong>Quantity Ordered:</strong> ${line.quantity_ordered}</div>
+                    <div><strong>Status:</strong> ${line.status}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>

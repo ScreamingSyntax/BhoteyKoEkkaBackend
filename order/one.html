@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Notifications</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Connect to the WebSocket for Notifications
+            var notificationSocket = new WebSocket(
+                'ws://localhost:3333/ws/notification/'
+            );
+
+            notificationSocket.onmessage = function(e) {
+                var data = JSON.parse(e.data);
+                var notifications = data['notifications'];
+                console.log("Notifications:", notifications);
+                // Clear existing notifications
+                var notificationList = document.getElementById('notification-list');
+                notificationList.innerHTML = '';
+                // Display each notification message
+                notifications.forEach(function(notification) {
+                    var listItem = document.createElement('li');
+                    listItem.textContent = `Message: ${notification.message}, Seen: ${notification.is_seen}`;
+                    notificationList.appendChild(listItem);
+                });
+            };
+
+            notificationSocket.onclose = function(e) {
+                console.error('Notification socket closed unexpectedly');
+            };
+        });
+    </script>
+</head>
+<body>
+    <h1>WebSocket Notifications</h1>
+    <ul id="notification-list">
+        <!-- Notifications will be inserted here -->
+    </ul>
+</body>
+</html>

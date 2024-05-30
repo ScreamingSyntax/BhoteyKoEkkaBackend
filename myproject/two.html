@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table Order Updates</title>
+<style>
+  /* Basic styling for the orders table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table, th, td {
+    border: 1px solid black;
+  }
+  th, td {
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+</style>
+</head>
+<body>
+<h2>Table Order Updates</h2>
+<div id="orders-container"></div>
+
+<script>
+  // Establish a WebSocket connection to the server
+  var socket = new WebSocket('ws://localhost:3333/ws/order/staff/'); // Adjust the URL to your WebSocket server
+
+  // Function to render order data into HTML
+  function renderOrders(orderData) {
+    const container = document.getElementById('orders-container');
+    container.innerHTML = ''; // Clear current contents
+    Object.keys(orderData).forEach(tableNumber => {
+      const orders = orderData[tableNumber];
+      const table = document.createElement('table');
+      const thead = table.createTHead();
+      const tbody = table.createTBody();
+      const headerRow = thead.insertRow();
+      ['Item Name', 'Quantity', 'Status', 'Order Date'].forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+      });
+      
+      orders.forEach(order => {
+        const row = tbody.insertRow();
+        ['id','item_name', 'quantity_ordered', 'status', 'order_date'].forEach(field => {
+          const cell = row.insertCell();
+          cell.textContent = order[field];
+        });
+      });
+      container.appendChild(document.createElement('h3')).textContent = `Table ${tableNumber}`;
+      container.appendChild(table);
+    });
+  }
+
+  // Handle messages received from the WebSocket server
+  socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    if (data.type === 'table_order_updates') {
+      renderOrders(data.message);
+    }
+  };
+
+  // Handle any errors that occur
+  socket.onerror = function(error) {
+    console.log('WebSocket Error: ' + error);
+  };
+</script>
+</body>
+</html>
